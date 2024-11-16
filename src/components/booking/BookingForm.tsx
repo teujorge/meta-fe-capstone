@@ -201,7 +201,7 @@ export function BookingForm({
               name="contactInfo"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>SMS Number</FormLabel>
+                  <FormLabel>Phone Number</FormLabel>
                   <FormControl>
                     <Input
                       type="tel"
