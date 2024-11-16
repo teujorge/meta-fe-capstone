@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 body {
+  font-family: "Nunito";
   @apply m-0 text-primary-foreground;
 }
 
@@ -20,6 +21,13 @@ h3 {
 
 h4 {
   @apply text-xl font-semibold;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: "Fredoka";
 }
 
 p {
