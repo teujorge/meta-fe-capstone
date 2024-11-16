@@ -39,6 +39,54 @@ describe("BookingForm", () => {
     expect(screen.getByText(/Special Requests/i)).toBeInTheDocument();
   });
 
+  it("shows email error when email is invalid", async () => {
+    render(
+      <BookingForm
+        availableTimes={mockAvailableTimes}
+        onDateChange={mockDateChange}
+        onSubmitSuccess={mockSubmitSuccess}
+      />
+    );
+
+    await act(async () => {
+      const emailRadio = screen.getByRole("radio", { name: /Email/i });
+      await userEvent.click(emailRadio);
+
+      const emailInput = screen.getByPlaceholderText(
+        /e\.g\., user@example\.com/i
+      );
+      await userEvent.type(emailInput, "invalid-email");
+
+      const submitButton = screen.getByRole("button", { name: /Submit/i });
+      await userEvent.click(submitButton);
+    });
+
+    expect(screen.getByText(/Invalid email address/i)).toBeInTheDocument();
+  });
+
+  it("shows number of people error when number is invalid", async () => {
+    render(
+      <BookingForm
+        availableTimes={mockAvailableTimes}
+        onDateChange={mockDateChange}
+        onSubmitSuccess={mockSubmitSuccess}
+      />
+    );
+
+    await act(async () => {
+      const numberOfPeopleInput = screen.getByLabelText(/Number of People/i);
+      await userEvent.clear(numberOfPeopleInput);
+      await userEvent.type(numberOfPeopleInput, "0");
+
+      const submitButton = screen.getByRole("button", { name: /Submit/i });
+      await userEvent.click(submitButton);
+    });
+
+    expect(
+      screen.getByText(/At least one person is required/i)
+    ).toBeInTheDocument();
+  });
+
   it("shows email input when Email is selected", async () => {
     render(
       <BookingForm
