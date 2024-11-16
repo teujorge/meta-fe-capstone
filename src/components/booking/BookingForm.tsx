@@ -25,14 +25,16 @@ import {
   FormMessage,
 } from "../ui/form";
 
-type BookingFormData = z.infer<typeof bookingFormSchema>;
+export type BookingFormData = z.infer<typeof bookingFormSchema>;
 
 export function BookingForm({
   availableTimes,
   onDateChange,
+  onSubmitSuccess,
 }: {
   availableTimes: string[];
   onDateChange: (date: Date) => Promise<void>;
+  onSubmitSuccess: (data: BookingFormData) => void;
 }) {
   const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingFormSchema),
@@ -83,7 +85,7 @@ export function BookingForm({
     try {
       const success = await submitAPI(data);
       if (success) {
-        alert("Booking successfully submitted!");
+        onSubmitSuccess(data);
       } else {
         alert("Failed to submit booking. Please try again.");
       }

@@ -1,6 +1,7 @@
 import { useEffect, useReducer } from "react";
+import { useNavigate } from "react-router-dom";
 import { fetchAPI } from "src/api";
-import { BookingForm } from "./BookingForm";
+import { BookingForm, BookingFormData } from "./BookingForm";
 
 import {
   availableTimesReducer,
@@ -8,6 +9,7 @@ import {
 } from "./availableTimesReducer";
 
 export function BookingPage() {
+  const navigate = useNavigate();
   const [availableTimes, dispatch] = useReducer(availableTimesReducer, []);
 
   useEffect(() => {
@@ -18,6 +20,16 @@ export function BookingPage() {
 
     fetchInitialTimes();
   }, []);
+
+  function handleSubmitSuccess(data: BookingFormData) {
+    navigate("/confirmed-booking");
+
+    // save data to local storage (add if doesn't exist, append if it does exist)
+    const bookings = JSON.parse(localStorage.getItem("bookings") || "[]");
+    bookings.push(data);
+    console.log(bookings);
+    localStorage.setItem("bookings", JSON.stringify(bookings));
+  }
 
   async function handleDateChange(date: Date) {
     dispatch({ type: "FETCH_TIMES", payload: date });
@@ -37,6 +49,7 @@ export function BookingPage() {
       <BookingForm
         availableTimes={availableTimes}
         onDateChange={handleDateChange}
+        onSubmitSuccess={handleSubmitSuccess}
       />
     </main>
   );

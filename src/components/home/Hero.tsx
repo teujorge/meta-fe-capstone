@@ -1,6 +1,9 @@
+import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 
 export function Hero() {
+  const navigate = useNavigate();
+
   return (
     <div className="w-full p-4 bg-primary">
       <div className="flex flex-col-reverse md:flex-row gap-4 limit-width">
@@ -15,7 +18,12 @@ export function Hero() {
             Donec eget odio ac justo ultricies fermentum. Nullam in urna nec
             felis ultricies tempor vel nec odio.
           </p>
-          <Button variant="secondary" size="lg" className="w-fit">
+          <Button
+            variant="secondary"
+            size="lg"
+            className="w-fit"
+            onClick={() => navigate("/booking")}
+          >
             Book A Table
           </Button>
         </section>

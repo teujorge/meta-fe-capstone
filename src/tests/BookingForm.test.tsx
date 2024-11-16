@@ -12,6 +12,7 @@ import {
 const mockAvailableTimes: string[] = ["10:00", "14:00", "18:00"];
 
 const mockDateChange = jest.fn();
+const mockSubmitSuccess = jest.fn();
 
 describe("BookingForm", () => {
   beforeEach(() => {
@@ -28,6 +29,7 @@ describe("BookingForm", () => {
       <BookingForm
         availableTimes={mockAvailableTimes}
         onDateChange={mockDateChange}
+        onSubmitSuccess={mockSubmitSuccess}
       />
     );
 
@@ -42,6 +44,7 @@ describe("BookingForm", () => {
       <BookingForm
         availableTimes={mockAvailableTimes}
         onDateChange={mockDateChange}
+        onSubmitSuccess={mockSubmitSuccess}
       />
     );
 
@@ -58,6 +61,7 @@ describe("BookingForm", () => {
       <BookingForm
         availableTimes={mockAvailableTimes}
         onDateChange={mockDateChange}
+        onSubmitSuccess={mockSubmitSuccess}
       />
     );
 
@@ -74,6 +78,7 @@ describe("BookingForm", () => {
       <BookingForm
         availableTimes={mockAvailableTimes}
         onDateChange={mockDateChange}
+        onSubmitSuccess={mockSubmitSuccess}
       />
     );
 
