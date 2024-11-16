@@ -55,6 +55,7 @@ function HighlightCard({
           src={img}
           alt={`${name}`}
           className="w-full h-20 object-cover rounded-md"
+          aria-label={`${name} Image`}
         />
         <CardTitle>
           <span className="w-full">{name}</span>
