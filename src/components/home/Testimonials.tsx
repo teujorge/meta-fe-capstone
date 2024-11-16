@@ -78,6 +78,7 @@ function TestimonialCard({
           src={img}
           alt={`${name} testimonial`}
           className="w-full h-20 object-cover rounded-md"
+          aria-label={`${name} Testimonial Image`}
         />
       </CardHeader>
 

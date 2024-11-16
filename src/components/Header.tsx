@@ -13,7 +13,7 @@ export function Header() {
   return (
     <header className="w-full bg-primary px-4">
       <div className="flex h-full items-center flex-row gap-4 justify-between limit-width">
-        <img src="logo.png" alt="logo" className="object-contain h-14" />
+        <img src="logo.png" alt="logo" className="object-contain h-14" aria-label="Little Lemon Logo" />
         <Nav className="flex-row gap-8 font-semibold hidden md:flex" />
         <MobileDrawer className="md:hidden block" />
       </div>
@@ -26,7 +26,7 @@ function MobileDrawer({ className }: { className?: string }) {
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger className={className}>
+      <SheetTrigger className={className} aria-label="Open Mobile Drawer">
         <MobileBurger isOpen={isOpen} />
       </SheetTrigger>
       <SheetContent className="h-svh">

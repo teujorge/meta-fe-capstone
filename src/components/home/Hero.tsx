@@ -33,6 +33,7 @@ export function Hero() {
             src="/assets/about/cookies.jpg"
             alt="hero"
             className="object-contain"
+            aria-label="Hero Image"
           />
         </div>
       </div>
