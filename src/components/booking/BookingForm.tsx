@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { submitAPI } from "src/api";
 import { z } from "zod";
 import { Button } from "../ui/button";
 import { DatePicker } from "../ui/date-picker";
@@ -8,7 +9,6 @@ import { Input } from "../ui/input";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Textarea } from "../ui/textarea";
 import { bookingFormSchema } from "./bookingFormSchema";
-import { findNearestTime, type TimeSlot } from "./availableTimesReducer";
 import {
   Select,
   SelectContent,
@@ -29,20 +29,21 @@ type BookingFormData = z.infer<typeof bookingFormSchema>;
 
 export function BookingForm({
   availableTimes,
-  dispatch,
+  onDateChange,
 }: {
-  availableTimes: TimeSlot[];
-  dispatch: React.Dispatch<{ type: "UPDATE_TIMES"; payload: Date }>;
+  availableTimes: string[];
+  onDateChange: (date: Date) => Promise<void>;
 }) {
   const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingFormSchema),
     defaultValues: {
-      dateTime: new Date(new Date().setHours(18, 0, 0, 0)).toISOString(),
+      date: new Date(),
+      time: undefined,
       contactMethod: "Email",
-      contactInfo: "",
+      contactInfo: undefined,
       numberOfPeople: 2,
       occasion: "Other",
-      specialRequests: "",
+      specialRequests: undefined,
     },
   });
 
@@ -50,27 +51,46 @@ export function BookingForm({
   const contactMethod = watch("contactMethod");
 
   useEffect(() => {
-    // When availableTimes update, adjust the time if necessary
-    const currentDateTime = new Date(form.getValues("dateTime"));
-    const currentHour = currentDateTime.getHours();
+    const currentTime = form.getValues("time");
 
-    const isCurrentHourAvailable = availableTimes.some(
-      (slot) => parseInt(slot.value, 10) === currentHour
-    );
-
-    if (!isCurrentHourAvailable) {
-      const newHour = parseInt(
-        findNearestTime(currentHour, availableTimes),
-        10
-      );
-      currentDateTime.setHours(newHour, 0, 0, 0);
-      form.setValue("dateTime", currentDateTime.toISOString());
+    if (!currentTime) {
+      form.setValue("time", availableTimes[0]);
+      return;
     }
+
+    // Find the closest available time to the previously selected time
+    const closestTime = availableTimes.reduce((closest, slot) => {
+      const currentTimeMinutes = parseTimeToMinutes(currentTime);
+      const slotMinutes = parseTimeToMinutes(slot);
+
+      const closestMinutes = parseTimeToMinutes(closest);
+      const currentDifference = Math.abs(slotMinutes - currentTimeMinutes);
+      const closestDifference = Math.abs(closestMinutes - currentTimeMinutes);
+
+      return currentDifference < closestDifference ? slot : closest;
+    }, availableTimes[0]);
+
+    form.setValue("time", closestTime);
   }, [form, availableTimes]);
 
-  const onSubmit = (values: BookingFormData) => {
-    console.log("Form Submitted:", values);
-    // TODO: Submit form data to the server
+  function parseTimeToMinutes(time: string) {
+    const [hours, minutes] = time.split(":").map(Number);
+    return hours * 60 + minutes;
+  }
+
+  const onSubmit = async (data: BookingFormData) => {
+    console.log("Form Submitted:", data);
+    try {
+      const success = await submitAPI(data);
+      if (success) {
+        alert("Booking successfully submitted!");
+      } else {
+        alert("Failed to submit booking. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error submitting booking:", error);
+      alert("An error occurred. Please try again.");
+    }
   };
 
   return (
@@ -78,92 +98,71 @@ export function BookingForm({
       <Form {...form}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Date and Time */}
-          <FormField
-            control={control}
-            name="dateTime"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Date and Time</FormLabel>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  {/* Day */}
-                  <FormControl>
-                    <DatePicker
-                      selectedDate={
-                        field.value ? new Date(field.value) : undefined
-                      }
-                      onSelectDate={(date) => {
-                        if (date) {
-                          dispatch({ type: "UPDATE_TIMES", payload: date });
-
-                          const currentDateTime = field.value
-                            ? new Date(field.value)
-                            : new Date();
-                          const currentHour = currentDateTime.getHours();
-
-                          // Use the updated availableTimes from props after dispatch
-                          const isCurrentHourAvailable = availableTimes.some(
-                            (slot) => parseInt(slot.value, 10) === currentHour
-                          );
-
-                          const newHour = isCurrentHourAvailable
-                            ? currentHour
-                            : parseInt(
-                                findNearestTime(currentHour, availableTimes),
-                                10
-                              );
-
-                          // Set the new date and time
-                          const newDate = new Date(date);
-                          newDate.setHours(newHour, 0, 0, 0);
-
-                          field.onChange(newDate.toISOString());
-                        } else {
-                          field.onChange(undefined);
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Day */}
+            <div className="flex flex-row gap-2 w-full sm:w-2/3">
+              <FormField
+                control={control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Date and Time</FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        selectedDate={
+                          field.value ? new Date(field.value) : undefined
                         }
-                      }}
-                    />
-                  </FormControl>
+                        onSelectDate={(date) => {
+                          if (date) {
+                            onDateChange(date);
+                            field.onChange(date);
+                          } else {
+                            field.onChange(undefined);
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-                  {/* Time */}
-                  <div className="flex flex-row gap-2 w-full sm:w-1/3">
+            {/* Time */}
+            <div className="flex flex-row gap-2 w-full sm:w-1/3">
+              <FormField
+                control={control}
+                name="time"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel className="invisible">Select Time</FormLabel>
                     <FormControl>
                       <Select
-                        value={
-                          field.value
-                            ? new Date(field.value).getHours().toString()
-                            : "18"
-                        }
-                        onValueChange={(value) => {
-                          const newHour = parseInt(value, 10);
-                          const currentDate = field.value
-                            ? new Date(field.value)
-                            : new Date();
-
-                          // Preserve the current date and update the hour
-                          currentDate.setHours(newHour, 0, 0, 0);
-
-                          // Update the form field with the new ISO string
-                          field.onChange(currentDate.toISOString());
-                        }}
+                        value={field.value}
+                        onValueChange={(value) => field.onChange(value)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger aria-label="Select Time">
                           <SelectValue placeholder="Select time" />
                         </SelectTrigger>
                         <SelectContent>
                           {availableTimes.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
+                            <SelectItem
+                              key={`time-slot-${option}`}
+                              value={option}
+                            >
+                              {option}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </FormControl>
-                  </div>
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
 
           {/* Contact Method */}
           <FormField
@@ -302,7 +301,9 @@ export function BookingForm({
           />
 
           {/* Submit Button */}
-          <Button type="submit">Submit</Button>
+          <Button type="submit" className="!pointer-events-auto">
+            Submit
+          </Button>
         </form>
       </Form>
     </div>

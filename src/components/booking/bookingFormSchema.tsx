@@ -2,7 +2,22 @@ import { z } from "zod";
 
 export const bookingFormSchema = z
   .object({
-    dateTime: z.string().min(1, "Date and Time is required"),
+    date: z
+      .date({
+        required_error: "Date is required",
+        invalid_type_error: "Invalid date format",
+      })
+      .refine(
+        (date) => {
+          const now = new Date();
+          now.setHours(0, 0, 0, 0);
+          const selectedDate = new Date(date);
+          selectedDate.setHours(0, 0, 0, 0);
+          return selectedDate >= now;
+        },
+        { message: "Date must be today or in the future" }
+      ),
+    time: z.string().min(1, "Time is required"),
     contactMethod: z.enum(["SMS", "Email"], {
       errorMap: () => ({ message: "Please select a contact method" }),
     }),

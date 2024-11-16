@@ -1,26 +1,22 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { act } from "react";
+import * as api from "../api";
 import { BookingForm } from "../components/booking/BookingForm";
 import {
   initializeTimes,
   availableTimesReducer,
-  TimeSlot,
 } from "../components/booking/availableTimesReducer";
 /* eslint-disable testing-library/no-unnecessary-act */
 
-const mockAvailableTimes: TimeSlot[] = [
-  { value: "10", label: "10:00 AM" },
-  { value: "14", label: "2:00 PM" },
-  { value: "18", label: "6:00 PM" },
-];
+const mockAvailableTimes: string[] = ["10:00", "14:00", "18:00"];
 
-const mockDispatch = jest.fn();
+const mockDateChange = jest.fn();
 
 describe("BookingForm", () => {
   beforeEach(() => {
     jest.spyOn(console, "log").mockImplementation(() => {});
-    mockDispatch.mockClear();
+    mockDateChange.mockClear();
   });
 
   afterEach(() => {
@@ -31,7 +27,7 @@ describe("BookingForm", () => {
     render(
       <BookingForm
         availableTimes={mockAvailableTimes}
-        dispatch={mockDispatch}
+        onDateChange={mockDateChange}
       />
     );
 
@@ -45,7 +41,7 @@ describe("BookingForm", () => {
     render(
       <BookingForm
         availableTimes={mockAvailableTimes}
-        dispatch={mockDispatch}
+        onDateChange={mockDateChange}
       />
     );
 
@@ -61,7 +57,7 @@ describe("BookingForm", () => {
     render(
       <BookingForm
         availableTimes={mockAvailableTimes}
-        dispatch={mockDispatch}
+        onDateChange={mockDateChange}
       />
     );
 
@@ -77,7 +73,7 @@ describe("BookingForm", () => {
     render(
       <BookingForm
         availableTimes={mockAvailableTimes}
-        dispatch={mockDispatch}
+        onDateChange={mockDateChange}
       />
     );
 
@@ -117,7 +113,8 @@ describe("BookingForm", () => {
             numberOfPeople: 4,
             occasion: "Other",
             specialRequests: "Window seat please",
-            dateTime: expect.any(String), // ISO string
+            date: expect.any(Date),
+            time: expect.any(String),
           })
         );
       });
@@ -125,83 +122,65 @@ describe("BookingForm", () => {
   });
 });
 
+// Mock the API module
+jest.mock("../api", () => ({
+  fetchAPI: jest.fn(),
+}));
+
 describe("initializeTimes", () => {
-  it("should return the correct initial times", () => {
-    const expectedTimes: TimeSlot[] = [
-      // Breakfast (9 AM - 11 AM)
-      { value: "9", label: "9 AM" },
-      { value: "10", label: "10 AM" },
-      { value: "11", label: "11 AM" },
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-      // Lunch (12 PM - 3 PM)
-      { value: "12", label: "12 PM" },
-      { value: "13", label: "1 PM" },
-      { value: "14", label: "2 PM" },
-      { value: "15", label: "3 PM" },
+  it("should initialize times successfully", async () => {
+    const mockTimes = ["17:00", "18:00", "19:00"];
+    (api.fetchAPI as jest.Mock).mockResolvedValueOnce(mockTimes);
 
-      // Dinner (5 PM - 10 PM)
-      { value: "17", label: "5 PM" },
-      { value: "18", label: "6 PM" },
-      { value: "19", label: "7 PM" },
-      { value: "20", label: "8 PM" },
-      { value: "21", label: "9 PM" },
-      { value: "22", label: "10 PM" },
-    ];
+    const result = await initializeTimes();
 
-    const actualTimes = initializeTimes();
+    expect(api.fetchAPI).toHaveBeenCalledWith(expect.any(Date));
+    expect(result).toEqual(mockTimes);
+  });
 
-    expect(actualTimes).toEqual(expectedTimes);
+  it("should handle API errors gracefully", async () => {
+    (api.fetchAPI as jest.Mock).mockRejectedValueOnce(new Error("API Error"));
+
+    const result = await initializeTimes();
+
+    expect(api.fetchAPI).toHaveBeenCalledWith(expect.any(Date));
+    expect(result).toEqual([]);
   });
 });
 
 describe("availableTimesReducer", () => {
-  it("should return the same state when action type is unknown", () => {
-    const initialState: TimeSlot[] = [{ value: "10", label: "10 AM" }];
-    const action = { type: "UNKNOWN_ACTION" } as any;
-    const newState = availableTimesReducer(initialState, action);
+  const initialState: string[] = ["5:00", "6:00 PM"];
 
-    expect(newState).toBe(initialState);
+  it("should handle UPDATE_TIMES action", () => {
+    const newTimes: string[] = ["19:00", "20:00"];
+
+    const result = availableTimesReducer(initialState, {
+      type: "UPDATE_TIMES",
+      payload: newTimes,
+    });
+
+    expect(result).toEqual(newTimes);
   });
 
-  it("should return all times on Saturday", () => {
-    const date = new Date(2024, 10, 16);
-    const newState = availableTimesReducer([], {
-      type: "UPDATE_TIMES",
-      payload: date,
+  it("should return current state for FETCH_TIMES action", () => {
+    const result = availableTimesReducer(initialState, {
+      type: "FETCH_TIMES",
+      payload: new Date(),
     });
 
-    const expectedTimes = initializeTimes();
-
-    expect(newState).toEqual(expectedTimes);
+    expect(result).toEqual(initialState);
   });
 
-  it("should return limited hours (12 PM - 8 PM) on Sunday", () => {
-    const date = new Date(2024, 10, 17);
-    const newState = availableTimesReducer([], {
-      type: "UPDATE_TIMES",
-      payload: date,
+  it("should return current state for unknown action", () => {
+    const result = availableTimesReducer(initialState, {
+      type: "UNKNOWN" as any,
+      payload: [],
     });
 
-    const expectedTimes = initializeTimes().filter((slot) => {
-      const hour = parseInt(slot.value, 10);
-      return hour >= 12 && hour <= 20;
-    });
-
-    expect(newState).toEqual(expectedTimes);
-  });
-
-  it("should return regular hours (11 AM onwards) on a weekday", () => {
-    const date = new Date(2024, 10, 18);
-    const newState = availableTimesReducer([], {
-      type: "UPDATE_TIMES",
-      payload: date,
-    });
-
-    const expectedTimes = initializeTimes().filter((slot) => {
-      const hour = parseInt(slot.value, 10);
-      return hour >= 11;
-    });
-
-    expect(newState).toEqual(expectedTimes);
+    expect(result).toEqual(initialState);
   });
 });
