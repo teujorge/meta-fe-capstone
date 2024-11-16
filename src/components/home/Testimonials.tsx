@@ -15,28 +15,28 @@ export function Testimonials() {
 
       <div className="flex flex-wrap gap-4 items-center justify-center">
         <TestimonialCard
-          img="https://randomuser.me/api/portraits"
+          img="https://randomuser.me/api/portraits/men/75.jpg"
           name="John Doe"
           rating={5}
           review="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum nec ligula nec nunc fringilla ultricies."
         />
 
         <TestimonialCard
-          img="https://randomuser.me/api/portraits"
+          img="https://randomuser.me/api/portraits/women/75.jpg"
           name="Jane Doe"
           rating={4}
           review="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum nec ligula nec nunc fringilla ultricies."
         />
 
         <TestimonialCard
-          img="https://randomuser.me/api/portraits"
+          img="https://randomuser.me/api/portraits/men/75.jpg"
           name="John Smith"
           rating={5}
           review="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum nec ligula nec nunc fringilla ultricies."
         />
 
         <TestimonialCard
-          img="https://randomuser.me/api/portraits"
+          img="https://randomuser.me/api/portraits/women/75.jpg"
           name="Jane Smith"
           rating={4}
           review="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum nec ligula nec nunc fringilla ultricies."
@@ -77,7 +77,7 @@ function TestimonialCard({
         <img
           src={img}
           alt={`${name} testimonial`}
-          className="w-full h-20 object-contain"
+          className="w-full h-20 object-cover rounded-md"
         />
       </CardHeader>
 

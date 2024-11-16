@@ -20,11 +20,13 @@ export function Hero() {
           </Button>
         </section>
 
-        <img
-          src="/images/hero.jpg"
-          alt="hero"
-          className="flex-1 p-4 object-contain rounded"
-        />
+        <div className="m-4 flex-1 rounded-md overflow-hidden">
+          <img
+            src="/assets/about/cookies.jpg"
+            alt="hero"
+            className="object-contain"
+          />
+        </div>
       </div>
     </div>
   );

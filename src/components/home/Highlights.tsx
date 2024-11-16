@@ -15,19 +15,19 @@ export function Highlights() {
 
       <div className="flex flex-wrap gap-4 items-center justify-center">
         <HighlightCard
-          img="/images/food-1.jpg"
+          img="/assets/specials/lemonade.jpg"
           name="Lemonade"
           price={5}
           description="Freshly squeezed lemons with a hint of mint."
         />
         <HighlightCard
-          img="/images/food-2.jpg"
+          img="/assets/specials/lemon-tart.jpg"
           name="Lemon Tart"
           price={8}
           description="A sweet and tangy lemon tart adorned with fresh berries."
         />
         <HighlightCard
-          img="/images/food-3.jpg"
+          img="/assets/specials/lemon-sorbet.webp"
           name="Lemon Sorbet"
           price={6}
           description="A refreshing lemon sorbet with a hint of basil."
@@ -51,7 +51,11 @@ function HighlightCard({
   return (
     <Card className="w-full sm:w-60">
       <CardHeader>
-        <img src={img} alt={`${name}`} className="w-full h-20 object-cover" />
+        <img
+          src={img}
+          alt={`${name}`}
+          className="w-full h-20 object-cover rounded-md"
+        />
         <CardTitle>
           <span className="w-full">{name}</span>
           <span className="pl-2 ml-auto font-normal text-base text-accent-foreground">

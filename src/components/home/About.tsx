@@ -14,15 +14,15 @@ export function About() {
 
       <div className="relative w-full md:w-1/2 p-8">
         <img
-          src="https://images.unsplash.com/photo-1542282081-9e0a16bb7366"
+          src="/assets/about/chris-james-tanner-2.jpg"
           alt="owner 1"
-          className="object-cover w-full md:w-1/2 h-72 p-2 md:absolute top-0 right-4 rounded-lg shadow-lg"
+          className="m-2 object-cover w-full md:w-1/2 h-72 md:absolute top-0 right-4 rounded-lg shadow-lg bg-accent border"
         />
 
         <img
-          src="https://images.unsplash.com/photo-1542282081-9e0a16bb7366"
+          src="/assets/about/chris-james-tanner-1.jpg"
           alt="owner 2"
-          className="object-cover w-full md:w-1/2 h-72 p-2 md:absolute bottom-0 left-4 rounded-lg shadow-lg"
+          className="m-2 object-cover w-full md:w-1/2 h-72 md:absolute bottom-0 left-4 rounded-lg shadow-lg bg-accent border"
         />
       </div>
     </div>
