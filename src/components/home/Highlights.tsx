@@ -13,7 +13,7 @@ export function Highlights() {
     <div className="flex flex-col gap-8 p-4 limit-width">
       <h2>Specials</h2>
 
-      <div className="flex flex-row gap-4 items-center justify-center">
+      <div className="flex flex-wrap gap-4 items-center justify-center">
         <HighlightCard
           img="/images/food-1.jpg"
           name="Lemonade"
@@ -49,9 +49,9 @@ function HighlightCard({
   description: string;
 }) {
   return (
-    <Card className="w-60">
+    <Card className="w-full sm:w-60">
       <CardHeader>
-        <img src={img} alt={`${name}`} className="w-full h-20 object-contain" />
+        <img src={img} alt={`${name}`} className="w-full h-20 object-cover" />
         <CardTitle>
           <span className="w-full">{name}</span>
           <span className="pl-2 ml-auto font-normal text-base text-accent-foreground">

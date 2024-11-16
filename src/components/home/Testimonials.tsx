@@ -13,7 +13,7 @@ export function Testimonials() {
     <div className="flex flex-col limit-width p-4 gap-8">
       <h2>Testimonials</h2>
 
-      <div className="flex flex-row gap-4 items-center justify-center">
+      <div className="flex flex-wrap gap-4 items-center justify-center">
         <TestimonialCard
           img="https://randomuser.me/api/portraits"
           name="John Doe"
@@ -58,7 +58,7 @@ function TestimonialCard({
   review: string;
 }) {
   return (
-    <Card className="w-48">
+    <Card className="w-full sm:w-48">
       <CardHeader>
         <CardTitle className="flex flex-col items-center justify-center">
           {name}

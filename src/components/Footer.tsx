@@ -3,8 +3,8 @@ import { Nav } from "./Nav";
 export function Footer() {
   return (
     <div className="w-full p-8 bg-accent mt-32">
-      <footer className="flex flex-row gap-24 limit-width">
-        <img src="logo192.png" alt="logo" className="object-contain" />
+      <footer className="flex flex-col md:flex-row gap-12 justify-between limit-width">
+        <img src="logo192.png" alt="logo" className="object-contain h-24" />
 
         <section className="flex flex-col gap-4">
           <h3>Site</h3>
