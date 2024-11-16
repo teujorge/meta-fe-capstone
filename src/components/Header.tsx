@@ -13,7 +13,7 @@ export function Header() {
   return (
     <header className="w-full bg-primary px-4">
       <div className="flex h-full items-center flex-row gap-4 justify-between limit-width">
-        <img src="logo192.png" alt="logo" className="object-contain h-14" />
+        <img src="logo.png" alt="logo" className="object-contain h-14" />
         <Nav className="flex-row gap-8 font-semibold hidden md:flex" />
         <MobileDrawer className="md:hidden block" />
       </div>
@@ -32,7 +32,7 @@ function MobileDrawer({ className }: { className?: string }) {
       <SheetContent className="h-svh">
         <SheetHeader>
           <SheetTitle>Little Lemon</SheetTitle>
-          <img src="logo192.png" alt="logo" className="object-contain h-14" />
+          <img src="logo.png" alt="logo" className="object-contain h-14" />
         </SheetHeader>
 
         <Nav className="flex-col gap-8 text-lg font-semibold text-right" />
