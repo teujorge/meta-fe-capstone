@@ -1,13 +1,21 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../ui/button";
 import { DatePicker } from "../ui/date-picker";
 import { Input } from "../ui/input";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { Slider } from "../ui/slider";
 import { Textarea } from "../ui/textarea";
 import { bookingFormSchema } from "./bookingFormSchema";
+import { findNearestTime, type TimeSlot } from "./availableTimesReducer";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import {
   Form,
   FormControl,
@@ -19,20 +27,46 @@ import {
 
 type BookingFormData = z.infer<typeof bookingFormSchema>;
 
-export function BookingForm() {
+export function BookingForm({
+  availableTimes,
+  dispatch,
+}: {
+  availableTimes: TimeSlot[];
+  dispatch: React.Dispatch<{ type: "UPDATE_TIMES"; payload: Date }>;
+}) {
   const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingFormSchema),
     defaultValues: {
-      dateTime: new Date(new Date().setHours(16, 0, 0, 0)).toISOString(), // Sets default to 4 PM
+      dateTime: new Date(new Date().setHours(18, 0, 0, 0)).toISOString(),
       contactMethod: "Email",
       contactInfo: "",
-      numberOfPeople: 1,
+      numberOfPeople: 2,
+      occasion: "Other",
       specialRequests: "",
     },
   });
 
   const { watch, handleSubmit, control } = form;
   const contactMethod = watch("contactMethod");
+
+  useEffect(() => {
+    // When availableTimes update, adjust the time if necessary
+    const currentDateTime = new Date(form.getValues("dateTime"));
+    const currentHour = currentDateTime.getHours();
+
+    const isCurrentHourAvailable = availableTimes.some(
+      (slot) => parseInt(slot.value, 10) === currentHour
+    );
+
+    if (!isCurrentHourAvailable) {
+      const newHour = parseInt(
+        findNearestTime(currentHour, availableTimes),
+        10
+      );
+      currentDateTime.setHours(newHour, 0, 0, 0);
+      form.setValue("dateTime", currentDateTime.toISOString());
+    }
+  }, [form, availableTimes]);
 
   const onSubmit = (values: BookingFormData) => {
     console.log("Form Submitted:", values);
@@ -59,18 +93,28 @@ export function BookingForm() {
                       }
                       onSelectDate={(date) => {
                         if (date) {
+                          dispatch({ type: "UPDATE_TIMES", payload: date });
+
                           const currentDateTime = field.value
                             ? new Date(field.value)
                             : new Date();
-                          const newDate = new Date(date);
+                          const currentHour = currentDateTime.getHours();
 
-                          // Preserve the existing time
-                          newDate.setHours(
-                            currentDateTime.getHours(),
-                            currentDateTime.getMinutes(),
-                            currentDateTime.getSeconds(),
-                            currentDateTime.getMilliseconds()
+                          // Use the updated availableTimes from props after dispatch
+                          const isCurrentHourAvailable = availableTimes.some(
+                            (slot) => parseInt(slot.value, 10) === currentHour
                           );
+
+                          const newHour = isCurrentHourAvailable
+                            ? currentHour
+                            : parseInt(
+                                findNearestTime(currentHour, availableTimes),
+                                10
+                              );
+
+                          // Set the new date and time
+                          const newDate = new Date(date);
+                          newDate.setHours(newHour, 0, 0, 0);
 
                           field.onChange(newDate.toISOString());
                         } else {
@@ -83,14 +127,14 @@ export function BookingForm() {
                   {/* Time */}
                   <div className="flex flex-row gap-2 w-full sm:w-1/3">
                     <FormControl>
-                      <Slider
-                        className="w-full"
-                        defaultValue={[16]} // Default to 4 PM
-                        min={0}
-                        max={23}
-                        step={1}
-                        onValueChange={(val) => {
-                          const newHour = val[0];
+                      <Select
+                        value={
+                          field.value
+                            ? new Date(field.value).getHours().toString()
+                            : "18"
+                        }
+                        onValueChange={(value) => {
+                          const newHour = parseInt(value, 10);
                           const currentDate = field.value
                             ? new Date(field.value)
                             : new Date();
@@ -101,18 +145,19 @@ export function BookingForm() {
                           // Update the form field with the new ISO string
                           field.onChange(currentDate.toISOString());
                         }}
-                        value={[
-                          field.value ? new Date(field.value).getHours() : 16,
-                        ]} // Reflect current hour
-                      />
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select time" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableTimes.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
-
-                    <span className="sm:mt-2 text-sm text-muted-foreground min-w-12">
-                      {(() => {
-                        const hours = new Date(field.value).getHours();
-                        return hours > 12 ? `${hours - 12} PM` : `${hours} AM`;
-                      })()}
-                    </span>
                   </div>
                 </div>
                 <FormMessage />
@@ -186,26 +231,57 @@ export function BookingForm() {
             />
           )}
 
-          {/* Number of People */}
-          <FormField
-            control={form.control}
-            name="numberOfPeople"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Number of People</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    {...field}
-                    onChange={(e) =>
-                      field.onChange(parseInt(e.target.value, 10))
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="flex flex-row gap-2 w-full">
+            {/* Number of People */}
+            <FormField
+              control={form.control}
+              name="numberOfPeople"
+              render={({ field }) => (
+                <FormItem className="flex-1">
+                  <FormLabel>Number of People</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value, 10))
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Occasion */}
+            <FormField
+              control={form.control}
+              name="occasion"
+              render={({ field }) => (
+                <FormItem className="flex-1">
+                  <FormLabel>Occasion</FormLabel>
+                  <FormControl>
+                    <Select
+                      value={field.value}
+                      onValueChange={(value) => field.onChange(value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select occasion" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Birthday">Birthday</SelectItem>
+                        <SelectItem value="Anniversary">Anniversary</SelectItem>
+                        <SelectItem value="Date">Date</SelectItem>
+                        <SelectItem value="Business">Business</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           {/* Special Requests */}
           <FormField

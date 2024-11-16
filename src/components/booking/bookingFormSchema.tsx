@@ -11,6 +11,9 @@ export const bookingFormSchema = z
       .number()
       .min(1, "At least one person is required")
       .max(20, "Maximum of 20 people allowed"),
+    occasion: z.enum(["Birthday", "Anniversary", "Date", "Business", "Other"], {
+      errorMap: () => ({ message: "Please select an occasion" }),
+    }),
     specialRequests: z
       .string()
       .max(500, "Special requests can't exceed 500 characters")
